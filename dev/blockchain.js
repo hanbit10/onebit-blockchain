@@ -3,7 +3,7 @@ const sha256 = require('sha256')
 class Blockchain {
     constructor () {
         this.chain = []
-        this.pendingTransactions = []
+        this.pendingTransactions = [];
 
         Blockchain.prototype.createNewBlock = (nonce, previousBlockHash, hash) => {
             const newBlock = {
@@ -18,6 +18,8 @@ class Blockchain {
             this.chain.push(newBlock);
             return newBlock
         }
+
+        this.createNewBlock(100, '0', '0')
 
         Blockchain.prototype.getLastBlock = () => {
             return this.chain[this.chain.length -1]
@@ -39,11 +41,18 @@ class Blockchain {
             const hash = sha256(dataAsString)
             return hash
         }
+
+        //proofOfWork keep searching for number 0000 on left side of the hash for the previousBlockHash, currentBlockData and nonce
+        Blockchain.prototype.proofOfWork = (previousBlockHash, currentBlockData) => {
+            let nonce = 0;
+            let hash = this.hashBlock(previousBlockHash, currentBlockData, nonce);
+            while(hash.substring(0, 4) !== '0000'){
+                nonce++
+                hash = this.hashBlock(previousBlockHash, currentBlockData, nonce)
+            }
+            return nonce
+        }
     }
-
-
-
-
 }
 
 module.exports = Blockchain
