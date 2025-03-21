@@ -1,3 +1,5 @@
+const port = process.argv[2]
+
 const express = require('express')
 const app = express()
 const bodyParser = require('body-parser');
@@ -48,6 +50,6 @@ app.get('/mine', (req, res) => {
 
 
 
-app.listen(3000, () => {
-    console.log('listening on port 3000')
+app.listen(port, () => {
+    console.log(`listening on port ${port}...`)
 })
