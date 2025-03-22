@@ -50,7 +50,7 @@ app.get('/mine', (req, res) => {
 
 })
 
-app.post('/register-and-broadcast-node', () => {
+app.post('/register-and-broadcast-node', (req,res) => {
     const newNodeUrl = req.body.newNodeUrl
     const regNodesPromises = []
 
@@ -59,7 +59,7 @@ app.post('/register-and-broadcast-node', () => {
 
     bitcoin.networkNodes.forEach(networkNodeUrl => {
         const requestOptions = {
-            uri: networkNodeUrl + '/register-node',
+            uri: networkNodeUrl + '/transaction',
             method: 'POST',
             body: { newNodeUrl: newNodeUrl},
             json: true
@@ -68,12 +68,15 @@ app.post('/register-and-broadcast-node', () => {
     })
     
     Promise.all(regNodesPromises).then(data => {
+        console.log(...bitcoin.networkNodes, bitcoin.currentNodeUrl, newNodeUrl)
         const bulkRegisterOptions = {
             uri: newNodeUrl + '/register-nodes-bulk',
             method: 'POST',
             body: {allNetworkNodes: [...bitcoin.networkNodes, bitcoin.currentNodeUrl]},
             json:true
         }
+
+        
     }).then( data => {
         res.json({note: 'New Node registered with network successfully'})
     })
@@ -81,13 +84,25 @@ app.post('/register-and-broadcast-node', () => {
     return rp(bulkRegisterOptions)
 })
 
-app.post('/register-node', () => {
+//It register node to other nodes
+app.post('/register-node', (req, res) => {
     const newNodeUrl = req.body.newNodeUrl;
     const nodeNotAlreadyPresent = bitcoin.networkNodes.indexOf(newNodeUrl) == -1;
     const notCurrentNode = bitcoin.currentNodeUrl !== newNodeUrl;
     if(nodeNotAlreadyPresent && notCurrentNode)
         bitcoin.networkNodes.push(newNodeUrl);
     res.json({ note: 'New node registered successfully'});
+})
+
+app.post('/register-node-bulk', (req, res) => {
+    const allNetworkNodes = req.body.allNetworkNodes
+
+    allNetworkNodes.forEach(networkNodeUrl => {
+        const notCurrentNode = bitcoin.currentNodeUrl != networkNodeUrl
+        const nodeNotAlreadyPresent = bitcoin.networkNodes.indexOf(networkNodeUrl) == -1    
+        if(nodeNotAlreadyPresent && notCurrentNode) bitcoin.networkNodes.push(networkNodeUrl)
+    })
+    res.json({note: 'Bulk registration successful'})
 })
 
 
